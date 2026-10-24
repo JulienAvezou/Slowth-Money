@@ -33,6 +33,8 @@ Slowth Money never connects to online banking, asks for credentials, moves money
 
 ## Privacy architecture
 
+<img width="493" height="614" alt="Capture d’écran 2026-10-23 à 21 18 43" src="https://github.com/user-attachments/assets/f8c8fda2-9c5f-4210-8508-d12d63cf006c" />
+
 ```mermaid
 flowchart LR
   subgraph Local[Your Mac]
