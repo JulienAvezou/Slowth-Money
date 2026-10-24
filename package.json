@@ -1,0 +1,96 @@
+{
+  "name": "slowth-money",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A calm, local-first Canadian financial planning desktop app.",
+  "main": "out/main/main.js",
+  "scripts": {
+    "native:electron": "node scripts/rebuild-native.mjs",
+    "native:node": "pnpm rebuild better-sqlite3",
+    "postinstall": "pnpm native:electron && electron-builder install-app-deps",
+    "predev": "pnpm native:electron",
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "pretest": "pnpm native:node",
+    "test": "vitest run",
+    "posttest": "pnpm native:electron",
+    "test:watch": "vitest",
+    "package:mac:dir": "pnpm build && electron-builder --mac --dir --arm64",
+    "package:mac": "pnpm build && electron-builder --mac dmg --arm64",
+    "pretest:e2e": "pnpm native:electron",
+    "test:e2e": "playwright test",
+    "lint": "eslint . --max-warnings=0",
+    "format": "prettier --write .",
+    "validate": "pnpm typecheck && pnpm test && pnpm lint && pnpm build"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.4.1",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^4.2.1",
+    "@eslint/js": "^9.38.0",
+    "@playwright/test": "^1.56.1",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^24.9.1",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@vitejs/plugin-react": "^5.0.4",
+    "electron": "^38.4.0",
+    "electron-builder": "^26.15.3",
+    "electron-vite": "^4.0.1",
+    "eslint": "^9.38.0",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.4.0",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.46.2",
+    "vite": "^7.1.12",
+    "vitest": "^4.0.4"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "pnpm@10.18.3",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3",
+      "electron",
+      "esbuild"
+    ]
+  },
+  "build": {
+    "appId": "ca.julienavezou.slowthmoney",
+    "productName": "Slowth Money",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "out/**/*",
+      "package.json"
+    ],
+    "asar": true,
+    "asarUnpack": [
+      "**/*.node"
+    ],
+    "npmRebuild": true,
+    "nativeRebuilder": "sequential",
+    "mac": {
+      "icon": "build/icon.icns",
+      "category": "public.app-category.finance",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64"
+          ]
+        }
+      ]
+    }
+  }
+}
