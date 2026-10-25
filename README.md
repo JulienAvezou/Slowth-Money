@@ -1,6 +1,8 @@
 # Slowth Money
 
-Slowth Money is a calm, local-first Canadian savings and goal-planning desktop app. It helps answer four questions without turning personal finance into another feed to monitor:
+Slowth Money is a calm, local-first savings and goal-planning desktop app. Canada is the proof-of-concept market for the current MVP: its registered-account wrappers, public institutions, and deposit products provide a concrete way to validate the privacy and planning architecture. The longer-term design can support other markets through country-specific packs, provider adapters, schemas, and UI, but only Canada is implemented today.
+
+Slowth Money helps answer four questions without turning personal finance into another feed to monitor:
 
 - Am I on track?
 - Do I need to do anything?
@@ -160,6 +162,22 @@ Current adapters check a small set of official Canadian provider pages. Web page
 
 Canadian educational concepts link to CRA and CDIC sources. Time-sensitive contribution limits are intentionally not embedded in prompts. Personal contribution room and eligibility always come from the user or remain unknown.
 
+## Extending Slowth Money to another market
+
+Canada is a proof of concept, not an assumption that every market has Canadian account types or rules. Much of `src/core/`—money arithmetic, goal projections, freshness, thresholds, and progress—is market-neutral. Country-specific knowledge starts in [`src/public-data/country-packs/canada`](src/public-data/country-packs/canada), with additional Canadian assumptions currently present in the domain schema, profile UI, public-data wiring, and local-AI context.
+
+Adding a market therefore requires more than copying the Canada directory. A safe implementation should:
+
+1. **Create a generic country-pack contract and registry.** Extract the reusable parts of `CanadaCountryPack` into a `CountryPack` interface, then register packs by ISO country code. Each pack should declare its currency, account wrappers, educational concepts, authoritative sources, source-trust policy, and refresh periods.
+2. **Add the new country pack.** Create `src/public-data/country-packs/<country-code>/` with the market's concepts and official regulator or government sources. Keep time-sensitive limits in refreshable data rather than hardcoding them in prompts.
+3. **Model market-specific profile fields.** Extend [`src/shared/types/domain.ts`](src/shared/types/domain.ts) and [`src/shared/schemas/domain.ts`](src/shared/schemas/domain.ts) with a discriminated country model. Do not reuse TFSA, FHSA, RRSP, province, eligibility, or contribution-room fields for a country where those concepts do not exist. Preserve explicit unknown states.
+4. **Add public-product adapters.** Implement isolated provider adapters using official sources where possible. Normalize rates, fees, promotion dates, eligibility, supported wrappers, provenance, and freshness without sending private profile values to providers or search services.
+5. **Select the pack at runtime.** Replace direct `canadaCountryPack` imports in the Electron service and Ollama client with registry lookup based on the profile country. Update generic public-search queries, currency formatting, profile forms, educational copy, and source displays to use the selected pack.
+6. **Plan encrypted-data migration.** If existing schemas change, add a backward-compatible migration for encrypted profiles. Never reinterpret a Canadian field as an equivalent foreign field without explicit user confirmation.
+7. **Add market-specific tests.** Cover schema validation, currency rounding, wrapper support, unknown eligibility, projections, provider normalization, partial failures, source trust, refresh policy, private-query isolation, and structured local-model output. Tests must use fixtures rather than live financial websites.
+
+A new country should not be presented as supported until its authoritative sources, domain fields, provider fixtures, migrations, UI, and safety tests are all in place. Financial rules and eligibility differ materially across jurisdictions; a country pack is an explicit boundary for those differences, not a translation layer that guesses equivalents.
+
 ## Demo mode
 
 Demo mode never writes fixture information into the real encrypted profile. The banner can deterministically simulate:
@@ -173,7 +191,7 @@ The included product is explicitly identified as a fixture, not a live offer. Na
 
 ## Current limitations
 
-- Canada is the only country pack.
+- Canada is the only implemented country pack; the runtime country-pack registry and market-specific profile variants described above are not implemented yet.
 - Provider HTML extraction is deliberately narrow and may require maintenance as official pages change.
 - SerpApi discovery is implemented behind a replaceable interface; the MVP UI currently emphasizes direct official-page refreshes.
 - Country-rule refresh verifies authoritative source availability and provenance; it does not yet extract every rule into a complete legal knowledge base.
